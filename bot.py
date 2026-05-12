@@ -24,7 +24,7 @@ current_question = -1   # رقم السؤال الحالي
 answered = False        # هل تم الإجابة على السؤال الحالي؟
 event_channel = None    # القناة التي تجري فيها الفعالية
 waiting_for_answer = False  # هل ننتظر إجابة الآن؟
-
+ALLOWED_ROLES = [1497836398676545546, 1497836322310721678, 1497836395711037512, 1498132684432474304, 1502687285446180964]
 DATA_FILE = "questions.json"  # ملف حفظ الأسئلة
 
 # ══════════════════════════════════════════════
@@ -62,6 +62,7 @@ async def on_ready():
 # ══════════════════════════════════════════════
 @bot.command(name="اضف")
 @commands.has_permissions(administrator=True)
+@commands.has_any_role(*ALLOWED_ROLES)
 async def add_question(ctx, *, answer: str = None):
     """
     طريقة الاستخدام:
@@ -113,6 +114,7 @@ async def add_question(ctx, *, answer: str = None):
 # ══════════════════════════════════════════════
 @bot.command(name="الاسئلة")
 @commands.has_permissions(administrator=True)
+@commands.has_any_role(*ALLOWED_ROLES)
 async def list_questions(ctx):
     if not questions:
         embed = discord.Embed(
@@ -144,6 +146,7 @@ async def list_questions(ctx):
 # ══════════════════════════════════════════════
 @bot.command(name="احذف")
 @commands.has_permissions(administrator=True)
+@commands.has_any_role(*ALLOWED_ROLES)
 async def delete_question(ctx, number: int):
     global questions
 
@@ -175,6 +178,7 @@ async def delete_question(ctx, number: int):
 # ══════════════════════════════════════════════
 @bot.command(name="مسح")
 @commands.has_permissions(administrator=True)
+@commands.has_any_role(*ALLOWED_ROLES)
 async def clear_questions(ctx):
     global questions
 
@@ -209,6 +213,7 @@ async def clear_questions(ctx):
 # ══════════════════════════════════════════════
 @bot.command(name="ابدأ")
 @commands.has_permissions(administrator=True)
+@commands.has_any_role(*ALLOWED_ROLES)
 async def start_event(ctx):
     global event_active, current_question, scores, event_channel, answered, waiting_for_answer
 
@@ -291,9 +296,20 @@ async def on_message(message):
         if message.channel == event_channel:
             q = questions[current_question]
             user_answer = message.content.strip().lower()
+import re
+def normalize(text):
+    text = re.sub(r'[إأآا]', 'ا', text)
+    text = re.sub(r'[ةه]', 'ه', text)
+    text = re.sub(r'[\u064B-\u065F]', '', text)  # حذف التشكيل
+    text = re.sub(r'^ال|(?<=\s)ال', '', text)  # حذف ال التعريف
+    text = text.strip()
+    return text
+
+user_answer = normalize(user_answer)
 
             # التحقق من الإجابة (يحتوي على الكلمة الصحيحة)
             if q["answer"] in user_answer:
+                if normalize(q["answer"]) in normalize(user_answer):
                 answered = True
                 waiting_for_answer = False
 
@@ -384,6 +400,7 @@ async def end_event(channel):
 # ══════════════════════════════════════════════
 @bot.command(name="ايقاف")
 @commands.has_permissions(administrator=True)
+@commands.has_any_role(*ALLOWED_ROLES)
 async def stop_event(ctx):
     global event_active, waiting_for_answer
 
