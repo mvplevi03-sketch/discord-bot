@@ -308,7 +308,6 @@ async def on_message(message):
 
 
             # التحقق من الإجابة (يحتوي على الكلمة الصحيحة)
-            if q["answer"] in user_answer:
                 if normalize(q["answer"]) in normalize(user_answer):
                 
                 answered = True
