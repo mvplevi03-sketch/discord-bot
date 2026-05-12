@@ -4,7 +4,15 @@ import asyncio
 import json
 import os
 from datetime import datetime
+import re
 
+def normalize(text):
+    text = re.sub(r'[إأآا]', 'ا', text)
+    text = re.sub(r'[ةه]', 'ه', text)
+    text = re.sub(r'[\u064B-\u065F]', '', text)
+    text = re.sub(r'^ال|(?<=\s)ال', '', text)
+    text = text.strip()
+    return text
 # ══════════════════════════════════════════════
 #           إعدادات البوت الأساسية
 # ══════════════════════════════════════════════
@@ -296,20 +304,13 @@ async def on_message(message):
         if message.channel == event_channel:
             q = questions[current_question]
             user_answer = message.content.strip().lower()
-import re
-def normalize(text):
-    text = re.sub(r'[إأآا]', 'ا', text)
-    text = re.sub(r'[ةه]', 'ه', text)
-    text = re.sub(r'[\u064B-\u065F]', '', text)  # حذف التشكيل
-    text = re.sub(r'^ال|(?<=\s)ال', '', text)  # حذف ال التعريف
-    text = text.strip()
-    return text
+            user_answer = normalize(user_answer)
 
-user_answer = normalize(user_answer)
 
             # التحقق من الإجابة (يحتوي على الكلمة الصحيحة)
             if q["answer"] in user_answer:
                 if normalize(q["answer"]) in normalize(user_answer):
+                
                 answered = True
                 waiting_for_answer = False
 
